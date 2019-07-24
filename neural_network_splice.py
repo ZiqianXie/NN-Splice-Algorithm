@@ -2,8 +2,7 @@
 # Neura Network Splice algorithm. Implementation and testing
 
 import numpy as np
-import pandas as pd
-import re
+import pickle as pkl
 import time
 import sys
 import string
@@ -69,10 +68,13 @@ def initialize_weights(n_input_neurons, n_output_neurons):
 
 
 class NeuralNetwork():
-    def __init__(self, n_input_neurons, n_hidden_neurons, n_output_neurons, learning_rate):
+    def __init__(self, n_input_neurons, n_hidden_neurons, n_output_neurons, learning_rate, saved_weights=None):
         # the first column contains biases for each neuron in each layer
-        self.input_hidden_weights = initialize_weights(n_input_neurons, n_hidden_neurons)
-        self.hidden_output_weights = initialize_weights(n_hidden_neurons, n_output_neurons)          
+        if saved_weights is not None:
+            self.input_hidden_weights, self.hidden_output_weights = [pkl.load(open(x, 'rb')) for x in saved_weights]
+        else:
+            self.input_hidden_weights = initialize_weights(n_input_neurons, n_hidden_neurons)
+            self.hidden_output_weights = initialize_weights(n_hidden_neurons, n_output_neurons)          
         self.learning_rate = learning_rate
         self.mse = 0
         self.error = 0        
@@ -227,8 +229,8 @@ class NeuralNetwork():
         return (mse, error, accuracy, recall, precision, specificity)
     
     def save_weights(self, filename_input_hidden_w, filename_hidden_output_w):
-        pd.DataFrame(self.input_hidden_weights).to_csv(filename_input_hidden_w)
-        pd.DataFrame(self.hidden_output_weights).to_csv(filename_hidden_output_w)
+        pkl.dump(self.input_hidden_weights, open(filename_input_hidden_w, 'wb'))
+        pkl.dump(self.hidden_output_weights, open(filename_hidden_output_w, 'wb'))
         
 if __name__ == "__main__":        
     if (len(sys.argv) > 2):
